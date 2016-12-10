@@ -1,4 +1,4 @@
-## Kata01: Supermarket Pricing
+# Kata01: Supermarket Pricing
 
 This kata arose from some discussions we’ve been having at the DFW Practioners meetings. The problem domain is something seemingly simple: pricing goods at supermarkets.
 
@@ -16,10 +16,10 @@ This kata involves no coding. The exercise is to experiment with various models 
 
 This is an ideal shower-time kata, but be careful. Some of the problems are more subtle than they first appear. I suggest that it might take a couple of weeks worth of showers to exhaust the main alternatives.
 
-#### Goal
-The goal of this kata is to practice a looser style of experimental modelling. Look for as many different ways of handling the issues as possible. Consider the various tradeoffs of each. What techniques are best for exploring these models? For recording them? How can you validate a model is reasonable?
+## Goal
+The goal of this kata is to practice a looser style of experimental modeling. Look for as many different ways of handling the issues as possible. Consider the various tradeoffs of each. What techniques are best for exploring these models? For recording them? How can you validate a model is reasonable?
 
-#### What’s a Code Kata?
+## What’s a Code Kata?
 As a group, software developers don’t practice enough. Most of our learning takes place on the job, which means that most of our mistakes get made there as well. Other creative professions practice: artists carry a sketchpad, musicians play technical pieces, poets constantly rewrite works. In karate, where the aim is to learn to spar or fight, most of a student’s time is spent learning and refining basic moves. The more formal of these exercises are called kata.
 
 To help developers get the same benefits from practicing, we’re putting together a series of code kata: simple, artificial exercises which let us experiment and learn without the pressure of a production environment. Our suggestions for doing the kata are:
