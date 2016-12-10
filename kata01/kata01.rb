@@ -1,4 +1,5 @@
 require 'faker'
+require 'active_support/inflector'
 
 class Item
   attr_accessor :name, :weight, :price, :bar_code
@@ -64,7 +65,7 @@ class Cart
         quantity += @items[item.bar_code][:quantity]
       else
         @items[item.bar_code] = {}
-        @items[item.bar_code][:name] = item.name
+        @items[item.bar_code][:item] = item
       end
 
       @items[item.bar_code][:quantity] = quantity
@@ -73,7 +74,7 @@ class Cart
   end
 
   def get_price item, quantity
-    if quantity > 1.0 && !item.min_quantity.nil?
+    if quantity > 1.0 && !item.min_quantity.nil? && quantity > item.min_quantity
       promotions = quantity / item.min_quantity
       off_promo = quantity % item.min_quantity
       (promotions * item.promotion[:value]) + (off_promo * item.price)
@@ -90,32 +91,59 @@ class Cart
   end
 
   def print_items
-    items = []
-    @items.each do |code, item|
-      items << "#{item[:quantity]}x #{item[:name]}"
-    end
-    items.join(', ')
+    pitems = list_items
+    pitems.join(', ')
   end
+
+  def receipt
+    @items.each do |code, item|
+      if item[:item].weight
+        puts "#{item[:quantity]} #{pluralize(item[:quantity], "pound")}\t#{item[:item].name}\t\t$#{item[:total_price].round(2)}"
+      else
+        puts "#{item[:quantity]}x\t\t#{item[:item].name}\t\t$#{item[:total_price].round(2)}"
+      end
+    end
+    puts "Total: #{total}"
+  end
+
+  def list_items
+    pitems = []
+    @items.each do |code, item|
+      if item[:item].weight
+        pitems << "#{item[:quantity]} #{pluralize(item[:quantity], "pound")} #{item[:item].name}"
+      else
+        pitems << "#{item[:quantity]}x #{item[:item].name}"
+      end
+    end
+    pitems
+  end
+
+  def pluralize(number, text)
+    return text.pluralize if number != 1
+    text
+  end
+
 end
 
 ##########  Create new items ##########
-banana = Item.new("banana", 1)
+banana = Item.new("Banana Maça", 1)
 
 fflakes = Item.new("Frosted Flakes", 10)
 fflakes.set_promotion 4,25
 
-meat = Item.new("Rib Eye Steak", 10, true)
+meat = Item.new("Rib Eye Steak", 12, true)
 meat.set_promotion 2, 10
 ##########  Create new items ##########
 
 cart = Cart.new
 cart.add_item banana, 2
 cart.add_item fflakes, 3
-puts "So far: #{cart.total} => #{cart.print_items}"
+# puts "So far: #{cart.total} => #{cart.print_items}"
 
 
 cart.add_item fflakes, 2
 cart.add_item banana, 2
-puts "So far: #{cart.total} => #{cart.print_items}"
-cart.add_item meat, 2
-puts "So far: #{cart.total} => #{cart.print_items}"
+# puts "So far: #{cart.total} => #{cart.print_items}"
+cart.weight_add_item meat, 24, 'oz'
+# puts "So far: #{cart.total} => #{cart.print_items}"
+cart.receipt
