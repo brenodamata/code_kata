@@ -1,33 +1,4 @@
-require 'faker'
 require 'active_support/inflector'
-
-class Item
-  attr_accessor :name, :weight, :price, :bar_code
-  def initialize(name, price=0.0, weight=false)
-    @name = name
-    @weight = weight # pound
-    @price = price
-    @promotion = Hash.new
-    @bar_code = Faker::Crypto.sha1 # no db to validate it's uniqueness
-  end
-
-  def promotion
-    @promotion
-  end
-
-  # eg.: 4 for 3 => min_quantity = 4, discaount = 25
-  # item.price = 10, 4i = (10*4)*0.75
-  def set_promotion min_quantity, discount
-    @promotion[:min_quantity] = min_quantity
-    @promotion[:discount] = discount
-    @promotion[:value] = (min_quantity * @price) * ((discount-100).abs * 0.01)
-  end
-
-  def min_quantity
-    @promotion.empty? ? nil : @promotion[:min_quantity]
-  end
-
-end
 
 class Cart
   def initialize
@@ -44,11 +15,19 @@ class Cart
     "$#{@total.round(2)}"
   end
 
+  def total_quantity
+    quantity = 0
+    @items.each do |code, item|
+      quantity += item[:quantity]
+    end
+    quantity
+  end
+
   def weight_add_item item, weight, uom
     if item.weight
-      if uom == ('lbs' || 'lbs' || 'pound' || 'pounds')
+      if uom == 'lbs' || uom == 'lb' || uom == 'pound' || uom == 'pounds'
         quantity = weight
-      elsif uom == ('oz' || 'ounce' || 'ozs' || 'ounces')
+      elsif uom == 'oz' || uom == 'ounce' || uom == 'ozs' || uom == 'ounces'
         quantity = weight / 16.0
       else
         raise "Unknown unit of measure"
@@ -73,8 +52,18 @@ class Cart
     end
   end
 
+  def get_price_old item, quantity
+    if quantity > 1.0 && !item.min_quantity.nil? && quantity >= item.min_quantity
+      promotions = quantity / item.min_quantity
+      off_promo = quantity % item.min_quantity
+      (promotions * item.promotion[:value]) + (off_promo * item.price)
+    else
+      item.price * quantity
+    end
+  end
+
   def get_price item, quantity
-    if quantity > 1.0 && !item.min_quantity.nil? && quantity > item.min_quantity
+    if !item.min_quantity.nil? && quantity >= item.min_quantity
       promotions = quantity / item.min_quantity
       off_promo = quantity % item.min_quantity
       (promotions * item.promotion[:value]) + (off_promo * item.price)
@@ -124,26 +113,3 @@ class Cart
   end
 
 end
-
-##########  Create new items ##########
-banana = Item.new("Banana Maça", 1)
-
-fflakes = Item.new("Frosted Flakes", 10)
-fflakes.set_promotion 4,25
-
-meat = Item.new("Rib Eye Steak", 12, true)
-meat.set_promotion 2, 10
-##########  Create new items ##########
-
-cart = Cart.new
-cart.add_item banana, 2
-cart.add_item fflakes, 3
-# puts "So far: #{cart.total} => #{cart.print_items}"
-
-
-cart.add_item fflakes, 2
-cart.add_item banana, 2
-# puts "So far: #{cart.total} => #{cart.print_items}"
-cart.weight_add_item meat, 24, 'oz'
-# puts "So far: #{cart.total} => #{cart.print_items}"
-cart.receipt
